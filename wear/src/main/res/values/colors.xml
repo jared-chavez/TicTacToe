@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_background">#0D0D0D</color>
+    <color name="white_neon">#FFFFFF</color>
+    <color name="red_neon">#FF0053</color>
+    <color name="cyan_neon">#00FFFF</color>
+    <color name="soft_magenta">#FF66CC</color>
+    <color name="deep_cyan">#0069CC</color>
+
+    <color name="primary_color">@color/cyan_neon</color>
+    <color name="secondary_color">@color/red_neon</color>
+    <color name="background_color">@color/dark_background</color>
+    <color name="text_color">@color/white_neon</color>
+</resources>
