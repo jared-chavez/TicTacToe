@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -17,17 +16,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.lifecycleScope
-import androidx.wear.compose.material.*
+import androidx.compose.ui.window.Dialog
+import com.example.tic_tac_toe.R
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
+import androidx.wear.tooling.preview.devices.WearDevices
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
+import androidx.wear.compose.material.*
+
 
 // Definición de los estados del juego
 enum class CellState { EMPTY, X, O }
@@ -47,10 +54,7 @@ class MainActivity : ComponentActivity() {
 
         // La función setContent define la UI de tu actividad usando Compose
         setContent {
-            // FIX: Using the default Wear Material theme until WearOSTicTacToeTheme is created.
-            MaterialTheme {
-                // FIX: Removed the incorrect Material3 Surface.
-                // TicTacToeScreen is the main content.
+            MaterialTheme { // You can replace this with your own custom theme later
                 TicTacToeScreen(
                     onGameEnd = { winner -> sendMessageToMobile(winner) }
                 )
@@ -66,10 +70,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                // 1. Obtener todos los nodos (dispositivos) conectados
                 val nodes = Wearable.getNodeClient(this@MainActivity).connectedNodes.await()
-
-                // 2. Enviar el mensaje a cada nodo (móvil emparejado)
                 nodes.forEach { node ->
                     messageClient.sendMessage(node.id, messagePath, payload).await()
                 }
@@ -90,6 +91,9 @@ fun TicTacToeScreen(onGameEnd: (CellState) -> Unit) {
     var currentTurn by remember { mutableStateOf(CellState.X) }
     var message by remember { mutableStateOf("Turno de X") }
     var isGameOver by remember { mutableStateOf(false) }
+
+    // --- NEW: State for controlling the end-game dialog ---
+    var showDialog by remember { mutableStateOf(false) }
 
     fun resetGame() {
         board = initialBoard
@@ -112,14 +116,48 @@ fun TicTacToeScreen(onGameEnd: (CellState) -> Unit) {
         if (winner != CellState.EMPTY) {
             message = "¡Ganador: ${winner.name}!"
             isGameOver = true
+            showDialog = true // --- NEW: Show dialog on win ---
             onGameEnd(winner)
         } else if (isBoardFull(board)) {
             message = "¡Empate!"
             isGameOver = true
+            showDialog = true // --- NEW: Show dialog on draw ---
             onGameEnd(CellState.EMPTY)
         } else {
             currentTurn = if (currentTurn == CellState.X) CellState.O else CellState.X
             message = "Turno de ${currentTurn.name}"
+        }
+    }
+
+    // --- NEW: End-game dialog alert ---
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = { showDialog = false }
+        ) {
+            // Set a custom background color for the dialog content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorResource(id = R.color.background_color))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = message,
+                    color = colorResource(id = R.color.secondary_color),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(onClick = {
+                    resetGame()
+                    showDialog = false
+                }) {
+                    Text("Play Again")
+                }
+            }
         }
     }
 
@@ -131,12 +169,13 @@ fun TicTacToeScreen(onGameEnd: (CellState) -> Unit) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            autoCentering = AutoCenteringParams(itemIndex = 1) // Center the board
+            autoCentering = AutoCenteringParams(itemIndex = 1)
         ) {
             item {
                 Text(
                     text = message,
-                    color = if (isGameOver) Color.Red else Color.White,
+                    // UPDATE: Using new theme colors
+                    color = if (isGameOver) colorResource(id = R.color.secondary_color) else colorResource(id = R.color.text_color),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -152,12 +191,16 @@ fun TicTacToeScreen(onGameEnd: (CellState) -> Unit) {
                 Button(
                     onClick = ::resetGame,
                     modifier = Modifier.size(ButtonDefaults.LargeButtonSize),
-                    enabled = isGameOver || isBoardFull(board)
+                    enabled = isGameOver || isBoardFull(board),
+                    // UPDATE: Styling button with theme colors
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = colorResource(id = R.color.primary_color),
+                        contentColor = colorResource(id = R.color.background_color)
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = "Reiniciar Juego",
-                        // FIX: Replaced unresolved 'IconSize' with a standard size modifier.
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -166,7 +209,7 @@ fun TicTacToeScreen(onGameEnd: (CellState) -> Unit) {
     }
 }
 
-// Lógica del juego
+// Lógica del juego (unchanged)
 fun isBoardFull(board: List<List<CellState>>): Boolean {
     return board.all { row -> row.all { it != CellState.EMPTY } }
 }
@@ -221,29 +264,36 @@ fun Cell(state: CellState, onClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier
             .aspectRatio(1f)
             .padding(4.dp)
-            .border(2.dp, Color.LightGray, RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colors.surface)
+            // UPDATE: Using new theme colors
+            .border(2.dp, colorResource(id = R.color.deep_cyan), RoundedCornerShape(8.dp))
+            .background(colorResource(id = R.color.background_color))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
+        // UPDATE: Using new theme colors
+        val textColor = when (state) {
+            CellState.X -> colorResource(id = R.color.primary_color)
+            CellState.O -> colorResource(id = R.color.soft_magenta)
+            CellState.EMPTY -> Color.Transparent
+        }
+
         Text(
             text = when (state) {
                 CellState.X -> "X"
                 CellState.O -> "O"
                 CellState.EMPTY -> ""
             },
-            color = if (state == CellState.X) Color.Cyan else Color.Magenta,
+            color = textColor,
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold
         )
     }
 }
 
-// Preview
-@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
+// Preview (will now render with the new colors)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    // FIX: Using the default theme for the preview as well.
     MaterialTheme {
         TicTacToeScreen(onGameEnd = {})
     }
