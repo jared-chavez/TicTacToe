@@ -2,6 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+    CORRECCIÓN: Se elimina la etiqueta <uses-feature> para "watch" porque este es el módulo móvil.
+    -->
+
+    <!--
+    CORRECCIÓN: Se añade el bloque <queries> para cumplir con las restricciones de visibilidad
+    de paquetes de Android 11+ y permitir la comunicación con Wear OS.
+    -->
+    <queries>
+        <intent>
+            <action android:name="com.google.android.wearable.BIND_LISTENER" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,34 +26,29 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TicTacToe"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- =================== ADD THIS ENTIRE SERVICE BLOCK =================== -->
+        <!--
+        CORRECCIÓN: Se elimina el <data> del intent-filter para que el servicio
+        reciba TODOS los mensajes del Data Layer, lo que es más robusto. El filtrado
+        por "path" específico se debe hacer dentro del propio servicio.
+        -->
         <service
             android:name=".DataLayerListenerService"
             android:exported="true">
             <intent-filter>
-                <!-- This intent filter is crucial. It tells Google Play Services
-                     that this service is interested in receiving messages. -->
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <!-- The data element specifies that we only want messages for our app
-                     and specifically for the "/game_end_status" path. -->
-                <data
-                    android:host="*"
-                    android:pathPrefix="/game_end_status"
-                    android:scheme="wear" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/" />
             </intent-filter>
         </service>
-        <!-- ==================================================================== -->
 
     </application>
-
 </manifest>

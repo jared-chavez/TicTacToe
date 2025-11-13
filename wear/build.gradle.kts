@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.tic_tac_toe"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.tic_tac_toe"
@@ -35,9 +33,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    useLibrary("wear-sdk")
     buildFeatures {
         compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
     }
 }
 
@@ -47,8 +47,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.wear.compose.material) // CORREGIDO: Alias para Wear OS
+    implementation(libs.androidx.wear.compose.foundation) // CORREGIDO: Alias para Wear OS
     implementation(libs.androidx.wear.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)

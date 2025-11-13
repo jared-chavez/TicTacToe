@@ -1,40 +1,43 @@
-package com.example.tic_tac_toe // Make sure this package name is correct
+package com.example.tic_tac_toe
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import com.google.android.gms.wearable.Wearable
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-    private lateinit var gameStatusTextView: TextView
-
-    private val messageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            // Get the status from the intent and update the TextView
-            val status = intent?.getStringExtra("status") ?: "No status received"
-            gameStatusTextView.text = status
-        }
-    }
+    private val gameViewModel: GameViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        gameStatusTextView = findViewById(R.id.game_status_text)
+        // Inject the clients into the ViewModel
+        gameViewModel.messageClient = Wearable.getMessageClient(this)
+        gameViewModel.nodeClient = Wearable.getNodeClient(this)
 
-        // Register the receiver to listen for "GameStatusUpdate" broadcasts
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(messageReceiver, IntentFilter("GameStatusUpdate"))
+        // Make the ViewModel accessible from the service
+        GameViewModelHolder.viewModel = gameViewModel
+
+        setContent {
+            TicTacToeScreen(
+                board = gameViewModel.board.value,
+                currentTurn = gameViewModel.currentTurn.value,
+                message = gameViewModel.message.value,
+                isGameOver = gameViewModel.isGameOver.value,
+                winner = gameViewModel.winner.value,
+                showDialog = gameViewModel.showDialog.value,
+                onCellClick = { row, col -> gameViewModel.handlePlayerMove(row, col) },
+                onReset = { gameViewModel.resetGame() },
+                onDismissDialog = { gameViewModel.showDialog.value = false }
+            )
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Unregister the receiver to prevent memory leaks
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver)
+        // Clear the ViewModel reference to avoid memory leaks
+        GameViewModelHolder.viewModel = null
     }
 }
