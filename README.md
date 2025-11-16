@@ -4,9 +4,19 @@
 
 ## Descripción General
 
-Este proyecto es una implementación completa de un juego de Tic-Tac-Toe (Gato) diseñado para funcionar de forma sincronizada entre un dispositivo móvil Android y un reloj inteligente con Wear OS. La aplicación demuestra una arquitectura moderna de desarrollo de Android, el uso de Jetpack Compose para interfaces de usuario adaptativas y la comunicación en tiempo real entre dispositivos a través de la API de Datos Portables de Google.
+Este proyecto es una implementación completa de un juego del Gato (Tic-Tac-Toe) diseñado para funcionar de forma sincronizada entre un dispositivo móvil Android y un reloj inteligente con Wear OS. La aplicación demuestra una arquitectura moderna de desarrollo de Android, el uso de Jetpack Compose para interfaces de usuario adaptativas y la comunicación en tiempo real entre dispositivos a través de la API de Datos Portables de Google.
 
 ---
+
+### Formato del Mensaje de Comunicación
+
+La comunicación entre dispositivos no utiliza un mensaje genérico de "respuesta", sino un **formato de datos específico y minimalista** para transmitir cada jugada. Esto asegura una comunicación rápida y eficiente.
+
+-   **Ruta del Mensaje:** Todos los mensajes se envían a través de la ruta `/tic_tac_toe_move`.
+-   **Formato del Mensaje:** Es una cadena de texto (`String`) simple que sigue la estructura: `"[JUGADOR],[FILA],[COLUMNA]"`.
+    -   **Ejemplo de una jugada:** `"X,0,1"` indica que el jugador 'X' ha marcado la casilla en la primera fila, segunda columna.
+    -   **Ejemplo de un reinicio:** `"EMPTY,-2,-2"` es un código especial que se usa para notificar al otro dispositivo que la partida se ha reiniciado.
+-   **Indicación:** En lugar de un mensaje general como "Puntaje del Wearable", cada mensaje es una **instrucción directa** que le dice a la aplicación receptora: "El otro jugador ha realizado este movimiento exacto. Actualiza tu estado de juego para reflejarlo". La lógica para determinar el ganador, el empate o el siguiente turno se ejecuta localmente en cada dispositivo después de procesar esta instrucción.
 
 ## 1. Vinculación y Comunicación entre Dispositivos
 

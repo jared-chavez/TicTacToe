@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="mobile">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-14T02:03:10.818741Z">
+        <DropdownSelection timestamp="2025-11-17T16:54:38.144551Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/angeljaredchaveztorres/.android/avd/Medium_Phone.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/angeljaredchaveztorres/.android/avd/Wear_OS_TTT.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-14T01:49:15.044144Z">
+        <DropdownSelection timestamp="2025-11-17T16:56:07.460210Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/angeljaredchaveztorres/.android/avd/Wear_OS_TTT.avd" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.100.10:38859;connection=34ecac66" />
             </handle>
           </Target>
         </DropdownSelection>
